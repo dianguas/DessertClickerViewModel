@@ -12,6 +12,7 @@ import com.example.dessertclicker.ui.theme.DessertClickerUIState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 
 class DessertClickerViewModel:ViewModel() {
     private val _uiState = MutableStateFlow(DessertClickerUIState())
@@ -63,6 +64,15 @@ class DessertClickerViewModel:ViewModel() {
                 intentContext.getString(R.string.sharing_not_available),
                 Toast.LENGTH_LONG
             ).show()
+        }
+    }
+
+    fun onDessertClicked(price: Int) {
+        _uiState.update { currentState ->
+            currentState.copy(
+                revenue = currentState.revenue + price,
+                dessertsSold = currentState.dessertsSold + 1
+            )
         }
     }
 }

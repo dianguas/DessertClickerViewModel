@@ -43,6 +43,136 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.dessertclicker.R
 
 @Composable
+fun RevenueInfo(revenue: Int, modifier: Modifier = Modifier) {
+    Row(
+        modifier = modifier,
+        horizontalArrangement = Arrangement.SpaceBetween,
+    ) {
+        Text(
+            text = stringResource(R.string.total_revenue),
+            style = MaterialTheme.typography.headlineMedium,
+            color = MaterialTheme.colorScheme.onSecondaryContainer
+        )
+        Text(
+            text = "$${revenue}",
+            textAlign = TextAlign.Right,
+            style = MaterialTheme.typography.headlineMedium,
+            color = MaterialTheme.colorScheme.onSecondaryContainer
+        )
+    }
+}
+
+@Composable
+fun DessertsSoldInfo(dessertsSold: Int, modifier: Modifier = Modifier) {
+    Row(
+        modifier = modifier,
+        horizontalArrangement = Arrangement.SpaceBetween,
+    ) {
+        Text(
+            text = stringResource(R.string.dessert_sold),
+            style = MaterialTheme.typography.titleLarge,
+            color = MaterialTheme.colorScheme.onSecondaryContainer
+        )
+        Text(
+            text = dessertsSold.toString(),
+            style = MaterialTheme.typography.titleLarge,
+            color = MaterialTheme.colorScheme.onSecondaryContainer
+        )
+    }
+}
+
+@Composable
+fun TransactionInfo(
+    revenue: Int,
+    dessertsSold: Int,
+    modifier: Modifier = Modifier
+) {
+    Column(modifier = modifier) {
+        DessertsSoldInfo(
+            dessertsSold = dessertsSold,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(dimensionResource(R.dimen.padding_medium))
+        )
+        RevenueInfo(
+            revenue = revenue,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(dimensionResource(R.dimen.padding_medium))
+        )
+    }
+}
+
+@Composable
+fun DessertClickerLayout(
+    revenue: Int,
+    dessertsSold: Int,
+    @DrawableRes dessertImageId: Int,
+    onDessertClicked: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Box(modifier = modifier) {
+        Image(
+            painter = painterResource(R.drawable.bakery_back),
+            contentDescription = null,
+            contentScale = ContentScale.Crop
+        )
+        Column {
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxWidth(),
+            ) {
+                Image(
+                    painter = painterResource(dessertImageId),
+                    contentDescription = null,
+                    modifier = Modifier
+                        .width(dimensionResource(R.dimen.image_size))
+                        .height(dimensionResource(R.dimen.image_size))
+                        .align(Alignment.Center)
+                        .clickable { onDessertClicked() },
+                    contentScale = ContentScale.Crop,
+                )
+            }
+            TransactionInfo(
+                revenue = revenue,
+                dessertsSold = dessertsSold,
+                modifier = Modifier.background(MaterialTheme.colorScheme.secondaryContainer)
+            )
+        }
+    }
+}
+
+@Composable
+fun DessertClickerAppBar(
+    onShareButtonClicked: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Row(
+        modifier = modifier,
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            text = stringResource(R.string.app_name),
+            modifier = Modifier.padding(start = dimensionResource(R.dimen.padding_medium)),
+            color = MaterialTheme.colorScheme.onPrimary,
+            style = MaterialTheme.typography.titleLarge,
+        )
+        IconButton(
+            onClick = onShareButtonClicked,
+            modifier = Modifier.padding(end = dimensionResource(R.dimen.padding_medium)),
+        ) {
+            Icon(
+                imageVector = Icons.Filled.Share,
+                contentDescription = stringResource(R.string.share),
+                tint = MaterialTheme.colorScheme.onPrimary
+            )
+        }
+    }
+}
+
+@Composable
 fun DessertClickerScreen(dessertClickerViewModel: DessertClickerViewModel = viewModel()) {
     val dessertClickerUIState by dessertClickerViewModel.uiState.collectAsState()
 
@@ -54,28 +184,47 @@ fun DessertClickerScreen(dessertClickerViewModel: DessertClickerViewModel = view
     }
     val intentContext = LocalContext.current
     val layoutDirection = LocalLayoutDirection.current
+
     Scaffold(
         topBar = {
-        Row(
-            modifier = modifier,
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Text(
-                text = stringResource(R.string.app_name),
-                modifier = Modifier.padding(start = dimensionResource(R.dimen.padding_medium)),
-                color = MaterialTheme.colorScheme.onPrimary,
-                style = MaterialTheme.typography.titleLarge,
-            )
-            IconButton(
-                onClick = onShareButtonClicked,
-                modifier = Modifier.padding(end = dimensionResource(R.dimen.padding_medium)),
-            ) {
-                Icon(
-                    imageVector = Icons.Filled.Share,
-                    contentDescription = stringResource(R.string.share),
-                    tint = MaterialTheme.colorScheme.onPrimary
+            val intentContext = LocalContext.current
+            val layoutDirection = LocalLayoutDirection.current
+            val modifier = Modifier
+                .fillMaxWidth()
+                .padding(
+                    start = WindowInsets.safeDrawing.asPaddingValues()
+                        .calculateStartPadding(layoutDirection),
+                    end = WindowInsets.safeDrawing.asPaddingValues()
+                        .calculateEndPadding(layoutDirection),
                 )
+                .background(MaterialTheme.colorScheme.primary)
+            Row(
+                modifier = modifier,
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    text = stringResource(R.string.app_name),
+                    modifier = Modifier.padding(start = dimensionResource(R.dimen.padding_medium)),
+                    color = MaterialTheme.colorScheme.onPrimary,
+                    style = MaterialTheme.typography.titleLarge,
+                )
+                IconButton(
+                    onClick = {
+                        dessertClickerViewModel.shareSoldDessertsInformation(
+                            intentContext = intentContext,
+                            dessertsSold = dessertClickerUIState.dessertsSold,
+                            revenue = dessertClickerUIState.revenue
+                        )
+                    },
+                    modifier = Modifier.padding(end = dimensionResource(R.dimen.padding_medium)),
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.Share,
+                        contentDescription = stringResource(R.string.share),
+                        tint = MaterialTheme.colorScheme.onPrimary
+                    )
+                }
             }
         }
     ) { contentPadding ->
@@ -84,156 +233,18 @@ fun DessertClickerScreen(dessertClickerViewModel: DessertClickerViewModel = view
             dessertsSold = dessertClickerUIState.dessertsSold,
             dessertImageId = currentDessertImageId,
             onDessertClicked = {
+                // Llamar al ViewModel para actualizar los valores
+                dessertClickerViewModel.onDessertClicked(currentDessertPrice)
 
-                // Update the revenue
-                dessertClickerUIState.revenue += currentDessertPrice
-                dessertClickerUIState.dessertsSold++
-
-                // Show the next dessert
-                val dessertToShow = dessertClickerViewModel.determineDessertToShow(dessertClickerUIState.desserts, dessertClickerUIState.dessertsSold)
+                // Actualizar la imagen y precio del postre
+                val dessertToShow = dessertClickerViewModel.determineDessertToShow(
+                    dessertClickerUIState.desserts,
+                    dessertClickerUIState.dessertsSold
+                )
                 currentDessertImageId = dessertToShow.imageId
                 currentDessertPrice = dessertToShow.price
             },
-            modifier = Modifier
+            modifier = Modifier.padding(contentPadding)
         )
     }
-        }
-
-    @Composable
-    fun DessertClickerLayout(
-        revenue: Int,
-        dessertsSold: Int,
-        @DrawableRes dessertImageId: Int,
-        onDessertClicked: () -> Unit,
-        modifier: Modifier = Modifier
-    ) {
-    }
-    @Composable
-    fun DessertClickerAppBar(
-        onShareButtonClicked: () -> Unit,
-        modifier: Modifier = Modifier
-    ) {
-        Row(
-            modifier = modifier,
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Text(
-                text = stringResource(R.string.app_name),
-                modifier = Modifier.padding(start = dimensionResource(R.dimen.padding_medium)),
-                color = MaterialTheme.colorScheme.onPrimary,
-                style = MaterialTheme.typography.titleLarge,
-            )
-            IconButton(
-                onClick = onShareButtonClicked,
-                modifier = Modifier.padding(end = dimensionResource(R.dimen.padding_medium)),
-            ) {
-                Icon(
-                    imageVector = Icons.Filled.Share,
-                    contentDescription = stringResource(R.string.share),
-                    tint = MaterialTheme.colorScheme.onPrimary
-                )
-            }
-        }
-    }
-
-    @Composable
-    fun DessertClickerScreen(
-        revenue: Int,
-        dessertsSold: Int,
-        @DrawableRes dessertImageId: Int,
-        onDessertClicked: () -> Unit,
-        modifier: Modifier = Modifier
-    ) {
-        Box(modifier = modifier) {
-            Image(
-                painter = painterResource(R.drawable.bakery_back),
-                contentDescription = null,
-                contentScale = ContentScale.Crop
-            )
-            Column {
-                Box(
-                    modifier = Modifier
-                        .weight(1f)
-                        .fillMaxWidth(),
-                ) {
-                    Image(
-                        painter = painterResource(dessertImageId),
-                        contentDescription = null,
-                        modifier = Modifier
-                            .width(dimensionResource(R.dimen.image_size))
-                            .height(dimensionResource(R.dimen.image_size))
-                            .align(Alignment.Center)
-                            .clickable { onDessertClicked() },
-                        contentScale = ContentScale.Crop,
-                    )
-                }
-                TransactionInfo(
-                    revenue = revenue,
-                    dessertsSold = dessertsSold,
-                    modifier = Modifier.background(MaterialTheme.colorScheme.secondaryContainer)
-                )
-            }
-        }
-    }
-
-    @Composable
-    fun TransactionInfo(
-        revenue: Int,
-        dessertsSold: Int,
-        modifier: Modifier = Modifier
-    ) {
-        Column(modifier = modifier) {
-            DessertsSoldInfo(
-                dessertsSold = dessertsSold,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(dimensionResource(R.dimen.padding_medium))
-            )
-            RevenueInfo(
-                revenue = revenue,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(dimensionResource(R.dimen.padding_medium))
-            )
-        }
-    }
-
-    @Composable
-    fun RevenueInfo(revenue: Int, modifier: Modifier = Modifier) {
-        Row(
-            modifier = modifier,
-            horizontalArrangement = Arrangement.SpaceBetween,
-        ) {
-            Text(
-                text = stringResource(R.string.total_revenue),
-                style = MaterialTheme.typography.headlineMedium,
-                color = MaterialTheme.colorScheme.onSecondaryContainer
-            )
-            Text(
-                text = "$${revenue}",
-                textAlign = TextAlign.Right,
-                style = MaterialTheme.typography.headlineMedium,
-                color = MaterialTheme.colorScheme.onSecondaryContainer
-            )
-        }
-    }
-
-    @Composable
-    fun DessertsSoldInfo(dessertsSold: Int, modifier: Modifier = Modifier) {
-        Row(
-            modifier = modifier,
-            horizontalArrangement = Arrangement.SpaceBetween,
-        ) {
-            Text(
-                text = stringResource(R.string.dessert_sold),
-                style = MaterialTheme.typography.titleLarge,
-                color = MaterialTheme.colorScheme.onSecondaryContainer
-            )
-            Text(
-                text = dessertsSold.toString(),
-                style = MaterialTheme.typography.titleLarge,
-                color = MaterialTheme.colorScheme.onSecondaryContainer
-            )
-        }
-    }
+}
